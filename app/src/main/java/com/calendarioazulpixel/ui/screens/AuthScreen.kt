@@ -44,6 +44,10 @@ fun AuthScreen(onLoginSuccess: () -> Unit) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val auth = remember { FirebaseAuth.getInstance() }
+    
+    val context = LocalContext.current
+    val connectivityObserver = remember { com.calendarioazulpixel.util.NetworkConnectivityObserver(context) }
+    val networkStatus by connectivityObserver.observe().collectAsState(initial = com.calendarioazulpixel.util.ConnectivityStatus.Available)
 
     Column(
         modifier = Modifier
@@ -178,6 +182,10 @@ fun AuthScreen(onLoginSuccess: () -> Unit) {
                 Button(
                     onClick = {
                         errorMessage = null
+                        if (networkStatus != com.calendarioazulpixel.util.ConnectivityStatus.Available) {
+                            errorMessage = "Esta función necesita conexión a internet. Tus demás funciones siguen disponibles si ya habías iniciado sesión."
+                            return@Button
+                        }
                         if (email.isBlank() || password.isBlank()) {
                             errorMessage = "Por favor, completa todos los campos."
                             return@Button

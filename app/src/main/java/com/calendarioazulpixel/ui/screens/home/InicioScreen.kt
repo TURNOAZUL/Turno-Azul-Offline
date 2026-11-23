@@ -211,6 +211,10 @@ fun InicioScreen(onNavigate: (String) -> Unit = {}) {
 
 @Composable
 fun HeaderSection() {
+    val context = LocalContext.current
+    val connectivityObserver = remember { com.calendarioazulpixel.util.NetworkConnectivityObserver(context) }
+    val status by connectivityObserver.observe().collectAsState(initial = com.calendarioazulpixel.util.ConnectivityStatus.Available)
+    
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -252,6 +256,29 @@ fun HeaderSection() {
                         Text(text = "Patio de Seguridad", color = BluePrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                     }
                 }
+            }
+            
+            // Indicador de conexión (Offline First)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                val isConnected = status == com.calendarioazulpixel.util.ConnectivityStatus.Available
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(if (isConnected) Color(0xFF4CAF50) else Color.Red)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = if (isConnected) "Conectado" else "Sin conexión",
+                    fontSize = 10.sp,
+                    color = BluePrimary,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
