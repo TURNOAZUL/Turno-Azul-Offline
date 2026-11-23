@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "calendario_azul_prefs")
 
@@ -60,8 +62,10 @@ class PreferencesRepository(private val context: Context) {
         }
 
     suspend fun saveShortcuts(shortcutsList: List<String>) {
-        context.dataStore.edit { preferences ->
-            preferences[ACCESOS_RAPIDOS_KEY] = shortcutsList.joinToString(",")
+        withContext(NonCancellable) {
+            context.dataStore.edit { preferences ->
+                preferences[ACCESOS_RAPIDOS_KEY] = shortcutsList.joinToString(",")
+            }
         }
     }
     
@@ -97,8 +101,10 @@ class PreferencesRepository(private val context: Context) {
 
     // Guardar el tamaño de pantalla
     suspend fun saveScreenSize(size: String) {
-        context.dataStore.edit { prefs ->
-            prefs[SCREEN_SIZE_KEY] = size
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                prefs[SCREEN_SIZE_KEY] = size
+            }
         }
     }
 
@@ -109,10 +115,12 @@ class PreferencesRepository(private val context: Context) {
 
     // Guardar datos del Perfil
     suspend fun savePerfil(nombre: String, grado: String, establecimiento: String) {
-        context.dataStore.edit { prefs ->
-            prefs[PERFIL_NOMBRE_KEY] = nombre
-            prefs[PERFIL_GRADO_KEY] = grado
-            prefs[PERFIL_ESTABLECIMIENTO_KEY] = establecimiento
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                prefs[PERFIL_NOMBRE_KEY] = nombre
+                prefs[PERFIL_GRADO_KEY] = grado
+                prefs[PERFIL_ESTABLECIMIENTO_KEY] = establecimiento
+            }
         }
     }
 
@@ -129,17 +137,19 @@ class PreferencesRepository(private val context: Context) {
         refDia: Long,
         refNoche: Long
     ) {
-        context.dataStore.edit { prefs ->
-            prefs[TIPO_TURNO_ACTIVO_KEY] = tipoTurno
-            prefs[COMPANIA_KEY] = compania
-            prefs[DIA_ENTRADA_KEY] = dEntrada
-            prefs[DIA_SALIDA_KEY] = dSalida
-            prefs[NOCHE_ENTRADA_KEY] = nEntrada
-            prefs[NOCHE_SALIDA_KEY] = nSalida
-            prefs[SUBTURNO_DIA_KEY] = subDia
-            prefs[SUBTURNO_NOCHE_KEY] = subNoche
-            prefs[SUBTURNO_DIA_REF_KEY] = refDia
-            prefs[SUBTURNO_NOCHE_REF_KEY] = refNoche
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                prefs[TIPO_TURNO_ACTIVO_KEY] = tipoTurno
+                prefs[COMPANIA_KEY] = compania
+                prefs[DIA_ENTRADA_KEY] = dEntrada
+                prefs[DIA_SALIDA_KEY] = dSalida
+                prefs[NOCHE_ENTRADA_KEY] = nEntrada
+                prefs[NOCHE_SALIDA_KEY] = nSalida
+                prefs[SUBTURNO_DIA_KEY] = subDia
+                prefs[SUBTURNO_NOCHE_KEY] = subNoche
+                prefs[SUBTURNO_DIA_REF_KEY] = refDia
+                prefs[SUBTURNO_NOCHE_REF_KEY] = refNoche
+            }
         }
     }
     
@@ -152,13 +162,15 @@ class PreferencesRepository(private val context: Context) {
         sub24: String,
         ref24: Long
     ) {
-        context.dataStore.edit { prefs ->
-            prefs[TIPO_TURNO_ACTIVO_KEY] = tipoTurno
-            prefs[COMPANIA_24_KEY] = compania
-            prefs[ENTRADA_24_KEY] = entrada
-            prefs[SALIDA_24_KEY] = salida
-            prefs[SUBTURNO_24_KEY] = sub24
-            prefs[SUBTURNO_24_REF_KEY] = ref24
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                prefs[TIPO_TURNO_ACTIVO_KEY] = tipoTurno
+                prefs[COMPANIA_24_KEY] = compania
+                prefs[ENTRADA_24_KEY] = entrada
+                prefs[SALIDA_24_KEY] = salida
+                prefs[SUBTURNO_24_KEY] = sub24
+                prefs[SUBTURNO_24_REF_KEY] = ref24
+            }
         }
     }
     
@@ -214,18 +226,22 @@ class PreferencesRepository(private val context: Context) {
         entrada: String,
         salida: String
     ) {
-        context.dataStore.edit { prefs ->
-            prefs[TIPO_TURNO_ACTIVO_KEY] = tipoTurno
-            prefs[COMPANIA_10_KEY] = compania
-            prefs[ENTRADA_10_KEY] = entrada
-            prefs[SALIDA_10_KEY] = salida
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                prefs[TIPO_TURNO_ACTIVO_KEY] = tipoTurno
+                prefs[COMPANIA_10_KEY] = compania
+                prefs[ENTRADA_10_KEY] = entrada
+                prefs[SALIDA_10_KEY] = salida
+            }
         }
     }
     
     // Guardar lista de compensatorios
     suspend fun saveCompensatorios(compensatorios: List<String>) {
-        context.dataStore.edit { prefs ->
-            prefs[stringPreferencesKey("compensatorios_list")] = compensatorios.joinToString("||")
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                prefs[stringPreferencesKey("compensatorios_list")] = compensatorios.joinToString("||")
+            }
         }
     }
 

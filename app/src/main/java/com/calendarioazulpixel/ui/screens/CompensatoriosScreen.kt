@@ -65,6 +65,7 @@ fun CompensatoriosScreen(onNavigateBack: () -> Unit) {
 
     var showAddDialog by remember { mutableStateOf(false) }
     var showRestoreDialog by remember { mutableStateOf(false) }
+    var itemToToggleState by remember { mutableStateOf<Compensatorio?>(null) }
     var itemToEdit by remember { mutableStateOf<Compensatorio?>(null) }
     var itemToDelete by remember { mutableStateOf<Compensatorio?>(null) }
 
@@ -163,6 +164,28 @@ fun CompensatoriosScreen(onNavigateBack: () -> Unit) {
             },
             dismissButton = {
                 TextButton(onClick = { itemToEdit = null }) { Text("Cancelar", color = Color.White) }
+            }
+        )
+    }
+
+    if (itemToToggleState != null) {
+        val comp = itemToToggleState!!
+        val newStateText = if (comp.isUtilizado) "Pendiente" else "Utilizado"
+        AlertDialog(
+            onDismissRequest = { itemToToggleState = null },
+            title = { Text("Cambiar Estado", color = Color.White, fontWeight = FontWeight.Bold) },
+            text = { 
+                Text("¿Deseas cambiar el estado de '${comp.nombre}' a $newStateText?", color = Color.White) 
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val newList = compensatorios.map { if (it.id == comp.id) it.copy(isUtilizado = !it.isUtilizado) else it }
+                    saveList(newList)
+                    itemToToggleState = null
+                }) { Text("Confirmar", color = Color.White, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { itemToToggleState = null }) { Text("Cancelar", color = Color.White) }
             }
         )
     }
@@ -345,10 +368,7 @@ fun CompensatoriosScreen(onNavigateBack: () -> Unit) {
             items(compensatorios) { item ->
                 CompensatorioItem(
                     item = item,
-                    onToggle = {
-                        val newList = compensatorios.map { if (it.id == item.id) it.copy(isUtilizado = !it.isUtilizado) else it }
-                        saveList(newList)
-                    },
+                    onToggle = { itemToToggleState = item },
                     onEdit = { itemToEdit = item },
                     onDelete = { itemToDelete = item }
                 )

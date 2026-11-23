@@ -116,11 +116,22 @@ fun AppNavigation(initialRoute: String? = null) {
                             ),
                             onClick = {
                                 navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                                    if (screen.route == Screen.Inicio.route) {
+                                        // Si toca Inicio, limpiamos toda la pila de navegación para no apilar subpantallas
+                                        popUpTo(Screen.Inicio.route) {
+                                            inclusive = true
+                                        }
+                                        launchSingleTop = true
+                                        // No restauramos estado para forzar una pantalla limpia
+                                        restoreState = false
+                                    } else {
+                                        // Comportamiento normal para las demás pestañas
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
                             }
                         )
