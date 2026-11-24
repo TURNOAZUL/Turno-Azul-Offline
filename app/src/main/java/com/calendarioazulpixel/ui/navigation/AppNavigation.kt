@@ -182,7 +182,25 @@ fun AppNavigation(initialRoute: String? = null) {
             composable(Screen.Servicios.route) { ServiciosScreen() }
             composable(Screen.Contactos.route) { ContactosScreen() }
             composable(Screen.Chats.route) { ChatsScreen() }
-            composable(Screen.Alarmas.route) { AlarmasScreen() }
+            composable(Screen.Alarmas.route) { 
+                com.calendarioazulpixel.ui.screens.AlarmasScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToConfig = { tipoAlarma ->
+                        navController.navigate("configurar_alarma/$tipoAlarma")
+                    }
+                ) 
+            }
+            
+            composable(
+                route = "configurar_alarma/{tipoAlarma}",
+                arguments = listOf(navArgument("tipoAlarma") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val tipoAlarma = backStackEntry.arguments?.getString("tipoAlarma") ?: "general"
+                com.calendarioazulpixel.ui.screens.ConfigurarAlarmaScreen(
+                    tipoAlarma = tipoAlarma,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
             composable(Screen.Clima.route) { ClimaScreen() }
             composable(Screen.Ayuda.route) { AyudaScreen() }
             composable(Screen.Permutas.route) { com.calendarioazulpixel.ui.screens.PermutasScreen(onNavigate = { ruta -> navController.navigate(ruta) }, onNavigateBack = { navController.popBackStack() }) }

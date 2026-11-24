@@ -35,12 +35,7 @@ fun ChatsScreen() {
     }
 }
 
-@Composable
-fun AlarmasScreen() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Pantalla de Alarmas y recordatorios en construcción...")
-    }
-}
+
 
 @Composable
 fun ClimaScreen() {

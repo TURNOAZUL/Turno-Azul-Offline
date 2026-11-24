@@ -53,6 +53,15 @@ class PreferencesRepository(private val context: Context) {
         val PERFIL_NOMBRE_KEY = stringPreferencesKey("perfil_nombre")
         val PERFIL_GRADO_KEY = stringPreferencesKey("perfil_grado")
         val PERFIL_ESTABLECIMIENTO_KEY = stringPreferencesKey("perfil_establecimiento")
+        
+        // Claves para Alarmas
+        val TIME_FORMAT_24H_KEY = booleanPreferencesKey("time_format_24h")
+        fun getAlarmEnabledKey(type: String) = booleanPreferencesKey("${type}_alarm_enabled")
+        fun getAlarmHourKey(type: String) = intPreferencesKey("${type}_alarm_hour")
+        fun getAlarmMinuteKey(type: String) = intPreferencesKey("${type}_alarm_minute")
+        fun getAlarmSoundUriKey(type: String) = stringPreferencesKey("${type}_alarm_sound_uri")
+        fun getAlarmSoundNameKey(type: String) = stringPreferencesKey("${type}_alarm_sound_name")
+        fun getAlarmVibrateKey(type: String) = booleanPreferencesKey("${type}_alarm_vibrate")
     }
 
     val shortcuts: Flow<List<String>> = context.dataStore.data
@@ -291,6 +300,58 @@ class PreferencesRepository(private val context: Context) {
                 list.add(0, newNavidad.toStringData())
             }
             list
+        }
+    }
+    
+    // Preferencia global de formato de hora
+    val is24HourFormat: Flow<Boolean> = context.dataStore.data.map { it[TIME_FORMAT_24H_KEY] ?: false }
+    
+    suspend fun saveTimeFormat(is24h: Boolean) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                prefs[TIME_FORMAT_24H_KEY] = is24h
+            }
+        }
+    }
+
+    // Configuración individual de Alarmas
+    fun getAlarmConfig(type: String): Flow<com.calendarioazulpixel.domain.model.AlarmConfig> = context.dataStore.data.map { prefs ->
+        val defaultHour = when (type) {
+            "noche" -> 16 // 04:00 PM
+            "dia" -> 4    // 04:30 AM
+            else -> 5     // 05:00 AM
+        }
+        val defaultMin = if (type == "dia") 30 else 0
+        
+        com.calendarioazulpixel.domain.model.AlarmConfig(
+            type = type,
+            enabled = prefs[getAlarmEnabledKey(type)] ?: false,
+            hour = prefs[getAlarmHourKey(type)] ?: defaultHour,
+            minute = prefs[getAlarmMinuteKey(type)] ?: defaultMin,
+            soundUri = prefs[getAlarmSoundUriKey(type)] ?: "",
+            soundName = prefs[getAlarmSoundNameKey(type)] ?: "Tono predeterminado",
+            vibrate = prefs[getAlarmVibrateKey(type)] ?: true
+        )
+    }
+
+    suspend fun saveAlarmConfig(config: com.calendarioazulpixel.domain.model.AlarmConfig) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                prefs[getAlarmEnabledKey(config.type)] = config.enabled
+                prefs[getAlarmHourKey(config.type)] = config.hour
+                prefs[getAlarmMinuteKey(config.type)] = config.minute
+                prefs[getAlarmSoundUriKey(config.type)] = config.soundUri
+                prefs[getAlarmSoundNameKey(config.type)] = config.soundName
+                prefs[getAlarmVibrateKey(config.type)] = config.vibrate
+            }
+        }
+    }
+    
+    suspend fun toggleAlarmEnabled(type: String, enabled: Boolean) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                prefs[getAlarmEnabledKey(type)] = enabled
+            }
         }
     }
 }
