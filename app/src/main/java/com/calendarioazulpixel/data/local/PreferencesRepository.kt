@@ -56,12 +56,23 @@ class PreferencesRepository(private val context: Context) {
         
         // Claves para Alarmas
         val TIME_FORMAT_24H_KEY = booleanPreferencesKey("time_format_24h")
+        val SCHEDULED_ALARMS_REGISTRY_KEY = stringSetPreferencesKey("scheduled_alarms_registry")
+        val ALARM_IDS_KEY = stringPreferencesKey("alarm_ids")
+        
+        fun getAlarmNameKey(type: String) = stringPreferencesKey("${type}_alarm_name")
         fun getAlarmEnabledKey(type: String) = booleanPreferencesKey("${type}_alarm_enabled")
         fun getAlarmHourKey(type: String) = intPreferencesKey("${type}_alarm_hour")
         fun getAlarmMinuteKey(type: String) = intPreferencesKey("${type}_alarm_minute")
         fun getAlarmSoundUriKey(type: String) = stringPreferencesKey("${type}_alarm_sound_uri")
         fun getAlarmSoundNameKey(type: String) = stringPreferencesKey("${type}_alarm_sound_name")
         fun getAlarmVibrateKey(type: String) = booleanPreferencesKey("${type}_alarm_vibrate")
+        fun getAlarmRepeatKey(type: String) = intPreferencesKey("${type}_alarm_repeat")
+        fun getAlarmDurationKey(type: String) = intPreferencesKey("${type}_alarm_duration")
+        fun getAlarmRepeatModeKey(type: String) = stringPreferencesKey("${type}_alarm_repeat_mode")
+        fun getAlarmRepeatDaysKey(type: String) = stringPreferencesKey("${type}_alarm_repeat_days")
+        fun getAlarmSnoozeEnabledKey(type: String) = booleanPreferencesKey("${type}_alarm_snooze_enabled")
+        fun getAlarmSnoozeIntervalKey(type: String) = intPreferencesKey("${type}_alarm_snooze_interval")
+        fun getAlarmSnoozeMaxCountKey(type: String) = intPreferencesKey("${type}_alarm_snooze_max_count")
     }
 
     val shortcuts: Flow<List<String>> = context.dataStore.data
@@ -314,7 +325,39 @@ class PreferencesRepository(private val context: Context) {
         }
     }
 
-    // Configuración individual de Alarmas
+    // Configuración individual de Alarmas y gestión de lista de alarmas (hasta 5)
+    val alarmIds: Flow<List<String>> = context.dataStore.data.map { prefs ->
+        val str = prefs[ALARM_IDS_KEY] ?: "general"
+        str.split(",").filter { it.isNotBlank() }
+    }
+
+    suspend fun addCustomAlarm(type: String): Boolean {
+        var added = false
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                val current = (prefs[ALARM_IDS_KEY] ?: "general").split(",").filter { it.isNotBlank() }.toMutableList()
+                if (current.size < 5 && !current.contains(type)) {
+                    current.add(type)
+                    prefs[ALARM_IDS_KEY] = current.joinToString(",")
+                    added = true
+                }
+            }
+        }
+        return added
+    }
+
+    suspend fun deleteAlarm(type: String) {
+        if (type == "general") return
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                val current = (prefs[ALARM_IDS_KEY] ?: "general").split(",").filter { it.isNotBlank() }.toMutableList()
+                if (current.remove(type)) {
+                    prefs[ALARM_IDS_KEY] = current.joinToString(",")
+                }
+            }
+        }
+    }
+
     fun getAlarmConfig(type: String): Flow<com.calendarioazulpixel.domain.model.AlarmConfig> = context.dataStore.data.map { prefs ->
         val defaultHour = when (type) {
             "noche" -> 16 // 04:00 PM
@@ -322,6 +365,21 @@ class PreferencesRepository(private val context: Context) {
             else -> 5     // 05:00 AM
         }
         val defaultMin = if (type == "dia") 30 else 0
+        val defaultName = when (type) {
+            "general" -> "Alarma General"
+            "dia" -> "Alarma Turno Día"
+            "noche" -> "Alarma Turno Noche"
+            "custom_1" -> "Alarma Personalizada 1"
+            "custom_2" -> "Alarma Personalizada 2"
+            else -> "Alarma"
+        }
+        
+        val repeatDaysStr = prefs[getAlarmRepeatDaysKey(type)] ?: ""
+        val repeatDaysList = if (repeatDaysStr.isNotEmpty()) {
+            repeatDaysStr.split(",").mapNotNull { it.toIntOrNull() }
+        } else {
+            emptyList()
+        }
         
         com.calendarioazulpixel.domain.model.AlarmConfig(
             type = type,
@@ -330,19 +388,35 @@ class PreferencesRepository(private val context: Context) {
             minute = prefs[getAlarmMinuteKey(type)] ?: defaultMin,
             soundUri = prefs[getAlarmSoundUriKey(type)] ?: "",
             soundName = prefs[getAlarmSoundNameKey(type)] ?: "Tono predeterminado",
-            vibrate = prefs[getAlarmVibrateKey(type)] ?: true
+            vibrate = prefs[getAlarmVibrateKey(type)] ?: true,
+            repeatInterval = prefs[getAlarmRepeatKey(type)] ?: 0,
+            durationMinutes = prefs[getAlarmDurationKey(type)] ?: 5,
+            name = prefs[getAlarmNameKey(type)] ?: defaultName,
+            repeatMode = prefs[getAlarmRepeatModeKey(type)] ?: "once",
+            repeatDays = repeatDaysList,
+            snoozeEnabled = prefs[getAlarmSnoozeEnabledKey(type)] ?: false,
+            snoozeIntervalMinutes = prefs[getAlarmSnoozeIntervalKey(type)] ?: 5,
+            snoozeMaxCount = prefs[getAlarmSnoozeMaxCountKey(type)] ?: 3
         )
     }
 
     suspend fun saveAlarmConfig(config: com.calendarioazulpixel.domain.model.AlarmConfig) {
         withContext(NonCancellable) {
             context.dataStore.edit { prefs ->
+                prefs[getAlarmNameKey(config.type)] = config.name
                 prefs[getAlarmEnabledKey(config.type)] = config.enabled
                 prefs[getAlarmHourKey(config.type)] = config.hour
                 prefs[getAlarmMinuteKey(config.type)] = config.minute
                 prefs[getAlarmSoundUriKey(config.type)] = config.soundUri
                 prefs[getAlarmSoundNameKey(config.type)] = config.soundName
                 prefs[getAlarmVibrateKey(config.type)] = config.vibrate
+                prefs[getAlarmRepeatKey(config.type)] = config.repeatInterval
+                prefs[getAlarmDurationKey(config.type)] = config.durationMinutes
+                prefs[getAlarmRepeatModeKey(config.type)] = config.repeatMode
+                prefs[getAlarmRepeatDaysKey(config.type)] = config.repeatDays.joinToString(",")
+                prefs[getAlarmSnoozeEnabledKey(config.type)] = config.snoozeEnabled
+                prefs[getAlarmSnoozeIntervalKey(config.type)] = config.snoozeIntervalMinutes
+                prefs[getAlarmSnoozeMaxCountKey(config.type)] = config.snoozeMaxCount
             }
         }
     }
@@ -351,6 +425,65 @@ class PreferencesRepository(private val context: Context) {
         withContext(NonCancellable) {
             context.dataStore.edit { prefs ->
                 prefs[getAlarmEnabledKey(type)] = enabled
+            }
+        }
+    }
+
+    // =========================================================================
+    // REGISTRO PERSISTENTE DE ALARMAS PROGRAMADAS (SUBFASE 3.3B)
+    // =========================================================================
+
+    /**
+     * Devuelve el conjunto (Set) completo de todas las firmas de alarmas programadas.
+     * Formato de firma esperado: "modalidad|categoria|fecha" (Ej. "12x24|dia|25/12/2026")
+     */
+    val scheduledAlarmsRegistry: Flow<Set<String>> = context.dataStore.data.map { prefs ->
+        prefs[SCHEDULED_ALARMS_REGISTRY_KEY] ?: emptySet()
+    }
+
+    /**
+     * Sobreescribe el conjunto completo de firmas en el DataStore.
+     * Utilizar con precaución en la fase de reconciliación para guardar la nueva lista oficial.
+     */
+    suspend fun saveScheduledAlarmsRegistry(signatures: Set<String>) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                prefs[SCHEDULED_ALARMS_REGISTRY_KEY] = signatures
+            }
+        }
+    }
+
+    /**
+     * Reemplaza exclusivamente las firmas pertenecientes a una modalidad específica (Ej. "12x24"),
+     * conservando intactas las firmas de otras modalidades (Ej. "24x48").
+     * Es ideal para la sincronización inteligente por módulos.
+     */
+    suspend fun updateScheduledAlarmsForModality(modality: String, newSignatures: Set<String>) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                val currentSet = prefs[SCHEDULED_ALARMS_REGISTRY_KEY] ?: emptySet()
+                
+                // Conservar las firmas de OTRAS modalidades
+                val otherModalitiesSet = currentSet.filterNot { it.startsWith("$modality|") }.toSet()
+                
+                // Combinar con las NUEVAS firmas de ESTA modalidad
+                val updatedSet = otherModalitiesSet + newSignatures
+                
+                prefs[SCHEDULED_ALARMS_REGISTRY_KEY] = updatedSet
+            }
+        }
+    }
+
+    /**
+     * Limpia completamente el registro de alarmas de una modalidad específica,
+     * útil si el usuario desactiva todas las alarmas de esa modalidad.
+     */
+    suspend fun clearScheduledAlarmsForModality(modality: String) {
+        withContext(NonCancellable) {
+            context.dataStore.edit { prefs ->
+                val currentSet = prefs[SCHEDULED_ALARMS_REGISTRY_KEY] ?: emptySet()
+                val otherModalitiesSet = currentSet.filterNot { it.startsWith("$modality|") }.toSet()
+                prefs[SCHEDULED_ALARMS_REGISTRY_KEY] = otherModalitiesSet
             }
         }
     }

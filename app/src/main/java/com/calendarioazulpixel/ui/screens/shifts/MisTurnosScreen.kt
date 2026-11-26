@@ -33,6 +33,7 @@ import com.calendarioazulpixel.ui.theme.BluePrimary
 import com.calendarioazulpixel.ui.theme.BlueSecondary
 import com.calendarioazulpixel.ui.theme.TextPrimary
 import com.calendarioazulpixel.ui.theme.TextSecondary
+import com.calendarioazulpixel.util.TurnoAlarmUtils
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -312,6 +313,18 @@ fun MisTurnosScreen() {
                                     refDia = refDateDia,
                                     refNoche = refDateNoche
                                 )
+                                // Llamamos al utilitario lógico de las alarmas (Etapa 2.1)
+                                val alarmDates = TurnoAlarmUtils.calculateFutureAlarms(
+                                    tipoTurno = activeTab,
+                                    compania = selectedCompania,
+                                    dEntrada = diaEntrada, dSalida = diaSalida, nEntrada = nocheEntrada, nSalida = nocheSalida,
+                                    entrada24 = entrada24, salida24 = salida24,
+                                    entrada10 = entrada10, salida10 = salida10,
+                                    subDia = selectedSubturnoDia, subNoche = selectedSubturnoNoche,
+                                    refDia = refDateDia, refNoche = refDateNoche,
+                                    sub24 = selectedSubturno24, ref24 = refDate24
+                                )
+                                // Por ahora el resultado no se usa (Etapa 3 será el destino)
                                 Toast.makeText(context, "Configuración guardada", Toast.LENGTH_SHORT).show()
                             }
                         },

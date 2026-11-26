@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "coml.micalendarioazulpixel"
+    namespace = "com.calendarioazulpixel"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "coml.micalendarioazulpixel"
+        applicationId = "com.calendarioazulpixel"
         minSdk = 24
         targetSdk = 37
         versionCode = 1

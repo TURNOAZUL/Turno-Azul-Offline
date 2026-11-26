@@ -198,7 +198,8 @@ fun AppNavigation(initialRoute: String? = null) {
                 val tipoAlarma = backStackEntry.arguments?.getString("tipoAlarma") ?: "general"
                 com.calendarioazulpixel.ui.screens.ConfigurarAlarmaScreen(
                     tipoAlarma = tipoAlarma,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToConfig = { target -> navController.navigate("configurar_alarma/$target") }
                 )
             }
             composable(Screen.Clima.route) { ClimaScreen() }

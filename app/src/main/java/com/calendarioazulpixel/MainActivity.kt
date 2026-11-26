@@ -16,7 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.calendarioazulpixel.data.local.PreferencesRepository
+import com.calendarioazulpixel.util.AlarmSyncManager
 import com.calendarioazulpixel.domain.model.ScreenSizeOption
 import com.calendarioazulpixel.ui.navigation.AppNavigation
 import com.calendarioazulpixel.ui.theme.CalendarioAzulTheme
@@ -34,6 +37,11 @@ class MainActivity : ComponentActivity() {
         
         // Solicitar permisos de notificación (Android 13+) y actualizar token FCM
         NotificationHelper.askForNotificationPermission(this)
+        
+        // Sincronizar la próxima alarma automáticamente
+        lifecycleScope.launch {
+            AlarmSyncManager.syncCurrentState(this@MainActivity)
+        }
         
         enableEdgeToEdge()
         setContent {

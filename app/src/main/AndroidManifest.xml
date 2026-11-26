@@ -8,6 +8,19 @@
     <!-- Permiso para enviar notificaciones en Android 13+ (API 33+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
+    <!-- Permiso para recuperar alarmas tras reiniciar el dispositivo -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- Permiso para usar el motor de vibración en las alarmas -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- Permiso para programar alarmas exactas (Requerido en Android 12+, API 31+) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <!-- Permisos para el servicio de alarma en primer plano (Etapa 3) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -38,6 +51,25 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        <!-- Servicio Reproductor de Alarmas en Primer Plano -->
+        <service
+            android:name="com.calendarioazulpixel.receiver.AlarmRingService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
+        <!-- Receptores para Alarmas (Subfase 3.1) -->
+        <receiver
+            android:name="com.calendarioazulpixel.receiver.AlarmReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name="com.calendarioazulpixel.receiver.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
     </application>
 
