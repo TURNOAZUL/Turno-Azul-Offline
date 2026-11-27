@@ -431,6 +431,13 @@ fun ConfigurarAlarmaScreen(
                     color = BluePrimary,
                     modifier = Modifier.padding(start = 4.dp)
                 )
+                Text(
+                    text = "Puedes agregar hasta 4 alarmas personales adicionales. La Alarma General es fija y no se puede eliminar.",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    lineHeight = 16.sp,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                )
 
                 val customAlarmIds = alarmIds.filter { it != "general" }
                 if (customAlarmIds.isEmpty()) {
@@ -496,7 +503,7 @@ fun ConfigurarAlarmaScreen(
                     ),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = if (isLimitReached) "Límite de 5 alarmas alcanzado" else "Agregar alarma",

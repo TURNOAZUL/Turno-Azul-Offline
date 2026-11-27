@@ -45,8 +45,9 @@ fun formatTime(hour: Int, minute: Int, is24h: Boolean): String {
 }
 
 fun formatRepeatSummary(config: AlarmConfig): String {
-    if (config.type == "dia") return "2.º - 3.º Turno (Día)"
-    if (config.type == "noche") return "4.º - 1.º Turno (Noche)"
+    if (config.type == "dia") return "Suena solo en los días que tengas segundo o tercer turno (día)."
+    if (config.type == "noche") return "Suena solo en los días que tengas cuarto o primer turno (noche)."
+    if (config.type == "general") return "Suena todos los días a la hora que configures, independientemente de tu rotación de turnos."
     
     return when (config.repeatMode) {
         "everyday" -> "Todos los días"
@@ -61,7 +62,7 @@ fun formatRepeatSummary(config: AlarmConfig): String {
                 "Días específicos ($count días): $names"
             }
         }
-        else -> if (config.type == "general") "Todos los días" else "Una sola vez"
+        else -> "Una sola vez"
     }
 }
 
@@ -154,7 +155,7 @@ fun AlarmasScreen(
             item {
                 AlarmaCard(
                     title = "Alarma General",
-                    subtitle = formatRepeatSummary(generalConfig),
+                    subtitle = "Suena todos los días a la hora que configures, independientemente de tu rotación de turnos.",
                     icon = Icons.Default.Alarm,
                     iconTint = BluePrimary,
                     iconBg = Color(0xFFE3F2FD),
@@ -175,7 +176,7 @@ fun AlarmasScreen(
             item {
                 AlarmaCard(
                     title = "Alarma Turno Día",
-                    subtitle = formatRepeatSummary(diaConfig),
+                    subtitle = "Suena solo en los días que tengas segundo o tercer turno (día).",
                     icon = Icons.Default.WbSunny,
                     iconTint = Color(0xFFF57F17),
                     iconBg = Color(0xFFFFF9C4),
@@ -196,7 +197,7 @@ fun AlarmasScreen(
             item {
                 AlarmaCard(
                     title = "Alarma Turno Noche",
-                    subtitle = formatRepeatSummary(nocheConfig),
+                    subtitle = "Suena solo en los días que tengas cuarto o primer turno (noche).",
                     icon = Icons.Default.ModeNight,
                     iconTint = Color(0xFF4527A0),
                     iconBg = Color(0xFFEDE7F6),
@@ -349,7 +350,7 @@ fun AlarmaCard(
                 Box(
                     modifier = Modifier
                         .background(Color(0xFFE5F2FC), RoundedCornerShape(8.dp))
-                        .padding(horizontal = this@Row.hashCode().let { 12 }.dp, vertical = 6.dp)
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
                         text = time, 
